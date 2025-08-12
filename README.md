@@ -3,10 +3,10 @@
 This project aims to detect fraudulent credit card transactions using machine learning techniques. Due to the **highly imbalanced dataset**, special attention is given to **data preprocessing, resampling, model selection**, and **threshold tuning** to improve **recall on the minority class (fraudulent transactions)**.
 
 ## 📊 Dataset
-- **Source:** [Kaggle - Credit Card Fraud Detection](https://www.kaggle.com/mlg-ulb/creditcardfraud)
+- **Source:** [Kaggle - Credit Card Fraud Detection] (https://www.kaggle.com/mlg-ulb/creditcardfraud)
 - Contains **284,807 transactions**, with **492 fraudulent** (≈0.17%).
 - Evaluation was done on the **original unbalanced dataset** (not SMOTE-balanced) to reflect real-world fraud rates.
-- Additional version of the dataset: [Kaggle - Credit Card Fraud Detection (Yashpal Oswal)](https://www.kaggle.com/datasets/yashpaloswal/fraud-detection-credit-card)
+- Additional version of the dataset: [Kaggle - Credit Card Fraud Detection (Yashpal Oswal)] (https://www.kaggle.com/datasets/yashpaloswal/fraud-detection-credit-card)
 
 ## 🧹 Data Preprocessing
 - Performed **standard scaling** (data is already PCA-transformed in original dataset).
@@ -35,3 +35,4 @@ XGBoost was selected as the final model due to its superior performance on fraud
 
 ## 🎯 Goal
 Maximize **recall** while maintaining reasonable **precision**, making the system more effective in real-world fraud detection where missing a fraud is more costly than a false alert.
+
