@@ -24,27 +24,31 @@ if uploaded_file:
     if missing:
         st.error(f"Your file is missing these required columns: {missing}")
     else:
-        # Keep only the expected features in the correct order
         X = data[expected_features]
 
-        # Check if 'Class' column exists for evaluation
+        # Slider for classification threshold
+        threshold = st.slider(
+            "Set classification threshold for fraud prediction",
+            min_value=0.0,
+            max_value=1.0,
+            value=0.5,
+            step=0.01,
+        )
+
         if "Class" in data.columns:
             y_true = data["Class"]
-
-            # Make predictions with probabilities
             y_probs = model.predict_proba(X)[:, 1]
-            predictions = (y_probs >= 0.5).astype(int)
+
+            # Apply threshold
+            predictions = (y_probs >= threshold).astype(int)
             data["Fraud Prediction"] = predictions
 
-            # Show predictions
             st.write("Predictions:", data)
 
-            # Model performance
             st.subheader("📊 Model Performance")
             report = classification_report(y_true, predictions, output_dict=True)
             st.write(pd.DataFrame(report).transpose())
 
-            # Confusion matrix
             cm = confusion_matrix(y_true, predictions)
             fig, ax = plt.subplots()
             sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", ax=ax)
@@ -54,11 +58,11 @@ if uploaded_file:
             st.pyplot(fig)
 
         else:
-            # If no labels provided, just make predictions (classes)
-            predictions = model.predict(X)
+            # No true labels, just predict classes based on threshold
+            y_probs = model.predict_proba(X)[:, 1]
+            predictions = (y_probs >= threshold).astype(int)
             data["Fraud Prediction"] = predictions
             st.write("Predictions:", data)
 
-        # Allow download of results
         csv = data.to_csv(index=False).encode("utf-8")
         st.download_button("Download Predictions", csv, "predictions.csv", "text/csv")
