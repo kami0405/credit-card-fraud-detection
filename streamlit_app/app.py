@@ -11,13 +11,6 @@ model = joblib.load("best_fraud_model_xgb.pkl")
 # Load the feature names your model expects
 expected_features = model.get_booster().feature_names
 
-# Threshold value (match your notebook's setting)
-THRESHOLD = 0.5  
-
-def predict_with_threshold(model, X, threshold=0.5):
-    proba = model.predict_proba(X)[:, 1]  # Probability of fraud
-    return (proba >= threshold).astype(int)
-
 st.title("💳 Credit Card Fraud Detection App")
 
 uploaded_file = st.file_uploader("Upload a CSV file with transaction data", type=["csv"])
@@ -31,32 +24,31 @@ if uploaded_file:
     if missing:
         st.error(f"Your file is missing these required columns: {missing}")
     else:
-        # Keep only the expected features in the correct order
         X = data[expected_features]
 
-<<<<<<< HEAD
-        # Make predictions using threshold tuning
-        predictions = predict_with_threshold(model, data, threshold=THRESHOLD)
-        data["Fraud Prediction"] = predictions
-=======
-        # Check if 'Class' column exists for evaluation
+        # Slider for classification threshold
+        threshold = st.slider(
+            "Set classification threshold for fraud prediction",
+            min_value=0.0,
+            max_value=1.0,
+            value=0.5,
+            step=0.01,
+        )
+
         if "Class" in data.columns:
             y_true = data["Class"]
->>>>>>> 47ae566b1d55dc3131d95a400770be3147b575b1
+            y_probs = model.predict_proba(X)[:, 1]
 
-            # Make predictions
-            predictions = model.predict(X)
+            # Apply threshold
+            predictions = (y_probs >= threshold).astype(int)
             data["Fraud Prediction"] = predictions
 
-            # Show predictions
             st.write("Predictions:", data)
 
-            # Model performance
             st.subheader("📊 Model Performance")
             report = classification_report(y_true, predictions, output_dict=True)
             st.write(pd.DataFrame(report).transpose())
 
-            # Confusion matrix
             cm = confusion_matrix(y_true, predictions)
             fig, ax = plt.subplots()
             sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", ax=ax)
@@ -66,11 +58,11 @@ if uploaded_file:
             st.pyplot(fig)
 
         else:
-            # If no labels provided, just make predictions
-            predictions = model.predict(X)
+            # No true labels, just predict classes based on threshold
+            y_probs = model.predict_proba(X)[:, 1]
+            predictions = (y_probs >= threshold).astype(int)
             data["Fraud Prediction"] = predictions
             st.write("Predictions:", data)
 
-        # Allow download of results
         csv = data.to_csv(index=False).encode("utf-8")
         st.download_button("Download Predictions", csv, "predictions.csv", "text/csv")
