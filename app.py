@@ -18,28 +18,27 @@ uploaded_file = st.file_uploader("Upload a CSV file with transaction data", type
 
 if uploaded_file:
     data = pd.read_csv(uploaded_file)
-    data.columns = data.columns.str.strip()  # Clean column names (remove leading/trailing spaces)
+    data.columns = data.columns.str.strip()  # Clean column names (remove spaces)
     st.write("Data Preview:", data.head())
 
-    # Show columns for debug
-    st.write("Columns in data:", data.columns.tolist())
+    # Debug: show scaler expected features
+    st.write("Scaler expects features:", scaler.feature_names_in_)
+
+    cols_needed = list(scaler.feature_names_in_)
+
+    # Check if all scaler features are present before scaling
+    if all(col in data.columns for col in cols_needed):
+        X_to_scale = data[cols_needed]
+        scaled_values = scaler.transform(X_to_scale)
+        data[cols_needed] = scaled_values
+    else:
+        missing_cols = set(cols_needed) - set(data.columns)
+        st.error(f"Cannot scale features. Missing columns for scaling: {missing_cols}")
 
     missing = set(expected_features) - set(data.columns)
     if missing:
         st.error(f"Your file is missing these required columns: {missing}")
     else:
-        # Ensure 'Amount' and 'Time' columns exist before scaling
-        if 'Amount' in data.columns and 'Time' in data.columns:
-            # Explicitly select columns with exact names for scaling
-            X_to_scale = data[['Amount', 'Time']]
-            # Just to be safe, rename columns to exactly what the scaler expects
-            X_to_scale.columns = ['Amount', 'Time']
-
-            scaled_values = scaler.transform(X_to_scale)
-            data[['Amount', 'Time']] = scaled_values
-        else:
-            st.warning("Warning: 'Amount' and/or 'Time' columns missing. Skipping scaling.")
-
         X = data[expected_features]
 
         if "Class" in data.columns:
