@@ -5,8 +5,9 @@ from sklearn.metrics import classification_report, confusion_matrix
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-# Load the trained model
+# Load the trained model and scaler
 model = joblib.load("best_fraud_model_xgb.pkl")
+scaler = joblib.load("scaler.pkl")  # Load the saved scaler
 
 # Load the feature names your model expects
 expected_features = model.get_booster().feature_names
@@ -19,28 +20,24 @@ if uploaded_file:
     data = pd.read_csv(uploaded_file)
     st.write("Data Preview:", data.head())
 
-    # Check if all required features are present
     missing = set(expected_features) - set(data.columns)
     if missing:
         st.error(f"Your file is missing these required columns: {missing}")
     else:
-        X = data[expected_features]
+        # Ensure 'Amount' and 'Time' columns exist before scaling
+        if 'Amount' in data.columns and 'Time' in data.columns:
+            data[['Amount', 'Time']] = scaler.transform(data[['Amount', 'Time']])
+        else:
+            st.warning("Warning: 'Amount' and/or 'Time' columns missing. Skipping scaling.")
 
-        # Slider for classification threshold
-        threshold = st.slider(
-            "Set classification threshold for fraud prediction",
-            min_value=0.0,
-            max_value=1.0,
-            value=0.5,
-            step=0.01,
-        )
+        X = data[expected_features]
 
         if "Class" in data.columns:
             y_true = data["Class"]
             y_probs = model.predict_proba(X)[:, 1]
 
-            # Apply threshold
-            predictions = (y_probs >= threshold).astype(int)
+            # Fixed threshold at 0.8
+            predictions = (y_probs >= 0.8).astype(int)
             data["Fraud Prediction"] = predictions
 
             st.write("Predictions:", data)
@@ -58,9 +55,10 @@ if uploaded_file:
             st.pyplot(fig)
 
         else:
-            # No true labels, just predict classes based on threshold
             y_probs = model.predict_proba(X)[:, 1]
-            predictions = (y_probs >= threshold).astype(int)
+
+            # Fixed threshold at 0.8
+            predictions = (y_probs >= 0.8).astype(int)
             data["Fraud Prediction"] = predictions
             st.write("Predictions:", data)
 
