@@ -57,4 +57,5 @@ if uploaded_file:
             st.write("Predictions:", data)
 
         csv = data.to_csv(index=False).encode("utf-8")
-        st.download_button("Download Predictions", csv, "predictions.csv", "text/csv"
+        st.download_button("Download Predictions", csv, "predictions.csv", "text/csv")
+
