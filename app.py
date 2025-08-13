@@ -5,9 +5,8 @@ from sklearn.metrics import classification_report, confusion_matrix
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-# Load the trained model and scaler
+# Load the trained model
 model = joblib.load("best_fraud_model_xgb.pkl")
-scaler = joblib.load("scaler.pkl")  # Load the saved scaler
 
 # Load the feature names your model expects
 expected_features = model.get_booster().feature_names
@@ -18,23 +17,9 @@ uploaded_file = st.file_uploader("Upload a CSV file with transaction data", type
 
 if uploaded_file:
     data = pd.read_csv(uploaded_file)
-    data.columns = data.columns.str.strip()  # Clean column names (remove spaces)
     st.write("Data Preview:", data.head())
 
-    # Debug: show scaler expected features
-    st.write("Scaler expects features:", scaler.feature_names_in_)
-
-    cols_needed = list(scaler.feature_names_in_)
-
-    # Check if all scaler features are present before scaling
-    if all(col in data.columns for col in cols_needed):
-        X_to_scale = data[cols_needed]
-        scaled_values = scaler.transform(X_to_scale)
-        data[cols_needed] = scaled_values
-    else:
-        missing_cols = set(cols_needed) - set(data.columns)
-        st.error(f"Cannot scale features. Missing columns for scaling: {missing_cols}")
-
+    # Check if all required features are present
     missing = set(expected_features) - set(data.columns)
     if missing:
         st.error(f"Your file is missing these required columns: {missing}")
@@ -72,4 +57,4 @@ if uploaded_file:
             st.write("Predictions:", data)
 
         csv = data.to_csv(index=False).encode("utf-8")
-        st.download_button("Download Predictions", csv, "predictions.csv", "text/csv")
+        st.download_button("Download Predictions", csv, "predictions.csv", "text/csv"
