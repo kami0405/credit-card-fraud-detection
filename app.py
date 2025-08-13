@@ -31,8 +31,8 @@ if uploaded_file:
         if "Class" in data.columns:
             y_true = data["Class"]
 
-            # Make predictions
-            y_probs = model.predict_proba(X_test)[:, 1]
+            # Make predictions with probabilities
+            y_probs = model.predict_proba(X)[:, 1]
             predictions = (y_probs >= 0.5).astype(int)
             data["Fraud Prediction"] = predictions
 
@@ -54,7 +54,7 @@ if uploaded_file:
             st.pyplot(fig)
 
         else:
-            # If no labels provided, just make predictions
+            # If no labels provided, just make predictions (classes)
             predictions = model.predict(X)
             data["Fraud Prediction"] = predictions
             st.write("Predictions:", data)
