@@ -18,7 +18,11 @@ uploaded_file = st.file_uploader("Upload a CSV file with transaction data", type
 
 if uploaded_file:
     data = pd.read_csv(uploaded_file)
+    data.columns = data.columns.str.strip()  # Clean column names (remove leading/trailing spaces)
     st.write("Data Preview:", data.head())
+
+    # Show columns for debug
+    st.write("Columns in data:", data.columns.tolist())
 
     missing = set(expected_features) - set(data.columns)
     if missing:
@@ -26,7 +30,13 @@ if uploaded_file:
     else:
         # Ensure 'Amount' and 'Time' columns exist before scaling
         if 'Amount' in data.columns and 'Time' in data.columns:
-            data[['Amount', 'Time']] = scaler.transform(data[['Amount', 'Time']])
+            # Explicitly select columns with exact names for scaling
+            X_to_scale = data[['Amount', 'Time']]
+            # Just to be safe, rename columns to exactly what the scaler expects
+            X_to_scale.columns = ['Amount', 'Time']
+
+            scaled_values = scaler.transform(X_to_scale)
+            data[['Amount', 'Time']] = scaled_values
         else:
             st.warning("Warning: 'Amount' and/or 'Time' columns missing. Skipping scaling.")
 
